@@ -1,10 +1,10 @@
 #16,3500: Time = 150ms
 
-profile_bruteforce <- function(number=16,W=3500){
+profile_bruteforce <- function(number=16,W=3500,parallel=FALSE){
   x <- create_problem(2000)
 
   p <- profvis({
-    knapsack_brute_force(x[1:number,],W)
+    knapsack_brute_force(x[1:number,],W,parallel)
   })
 
   return(p)

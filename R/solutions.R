@@ -8,7 +8,7 @@
 #' @export
 #'
 #' @examples
-knapsack_brute_force <- function(x, W){
+knapsack_brute_force <- function(x, W,parallel=FALSE){
   stopifnot(is.data.frame(x),
             "v" %in% names(x),
             "w" %in% names(x)
@@ -27,8 +27,17 @@ knapsack_brute_force <- function(x, W){
     }
     return(c(weight=w_sum, value=v_sum))
   }
-
-  possib_knapsacks <- t(apply(X=comb,MARGIN=1,FUN=sum_up))
+  if(parallel == TRUE){
+    num_cores <- detectCores()
+    print(num_cores)
+    #clust <- makeCluster(num_cores)
+    #clusterExport(clust,comb)
+    possib_knapsacks <- t(mclapply(mc.cores = num_cores,X=comb,MARGIN=1,FUN=sum_up))
+    stopCluster(clust)
+  }
+  else{
+    possib_knapsacks <- t(apply(X=comb,MARGIN=1,FUN=sum_up))
+  }
   max_val <- max(possib_knapsacks[,'value'])
   best_index <- which(possib_knapsacks[,'value'] == max_val)
   best_comb <- comb[best_index,]
