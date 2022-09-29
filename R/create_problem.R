@@ -1,3 +1,15 @@
+#' Function to create a large dataset for the Knapsack problem
+#'
+#' @param nmax size of the dataset
+#'
+#' @return a data.frame of size nmax
+#' @export
+#' @import stats
+#'
+#'
+#' @examples
+#' x <- create_problem(2000)
+#' print(head(x))
 create_problem <- function(nmax){
   suppressWarnings(RNGversion(min(as.character(getRversion()),"3.5.3")))
   ##old sampler used for backward compatibility
