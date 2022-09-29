@@ -15,7 +15,7 @@ profile_bruteforce <- function(number=16,W=3500,parallel=FALSE){
   x <- create_problem(2000)
 
   p <- profvis({
-   r<- knapsack_brute_force(x[1:number,],W,parallel = parallel)
+   r<- brute_force_knapsack(x[1:number,],W,parallel = parallel)
    print(r)
   })
 

@@ -12,12 +12,16 @@
 #' @examples
 #' x <- create_problem(2000)
 #' print(head(x))
-#' knapsack_brute_force(x = x[1:8,],W = 3500, parallel = FALSE)
+#' brute_force_knapsack(x = x[1:8,],W = 3500, parallel = FALSE)
 
-knapsack_brute_force <- function(x, W,parallel=FALSE){
+brute_force_knapsack <- function(x, W,parallel=FALSE){
   stopifnot(is.data.frame(x),
             "v" %in% names(x),
-            "w" %in% names(x)
+            "w" %in% names(x),
+            is.numeric(W),
+            W>0,
+            is.numeric(x$v),
+            is.numeric(x$w)
             )
   # print(x$w)
   possible <- rep(list(c(TRUE,FALSE)),times = length(x$w))
@@ -73,6 +77,15 @@ knapsack_brute_force <- function(x, W,parallel=FALSE){
 #' knapsack_dynamic(x[1:8,],3500)
 
 knapsack_dynamic <- function(x, W){
+  stopifnot(is.data.frame(x),
+            "v" %in% names(x),
+            "w" %in% names(x),
+            is.numeric(W),
+            W>0,
+            is.numeric(x$v),
+            is.numeric(x$w)
+  )
+
   n <- length(x$w)
   m <- matrix(0,nrow=n+1,ncol=W+1)
 
@@ -119,6 +132,15 @@ knapsack_dynamic <- function(x, W){
 #' x <- create_problem(2000)
 #' greedy_knapsack(x[1:800,],3500)
 greedy_knapsack <- function(x, W){
+  stopifnot(is.data.frame(x),
+            "v" %in% names(x),
+            "w" %in% names(x),
+            is.numeric(W),
+            W>0,
+            is.numeric(x$v),
+            is.numeric(x$w)
+  )
+
   x$ratio <- x$v / x$w
   x <- x[order(x$ratio,method="radix",decreasing=TRUE),] #profile later, which sort is fastest
   current_W <- 0
@@ -128,8 +150,10 @@ greedy_knapsack <- function(x, W){
     if((current_W + x$w[i]) <= W){
       current_W <- current_W + x$w[i]
       current_v <- current_v + x$v[i]
-      elem_vec <- append(elem_vec,rownames(x)[i])
+      elem_vec <- append(elem_vec,as.numeric(rownames(x)[i]))
     }
+    else
+      break
   }
   return_lst <- list(value=current_v,elements=elem_vec)
   return(return_lst)
