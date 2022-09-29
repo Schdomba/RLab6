@@ -8,7 +8,7 @@
 #' @export
 #'
 #' @examples
-knapsack_bruteforce <- function(x, W){
+knapsack_brute_force <- function(x, W){
   stopifnot(is.data.frame(x),
             "v" %in% names(x),
             "w" %in% names(x)
@@ -36,5 +36,57 @@ knapsack_bruteforce <- function(x, W){
   package_nums <- which(best_comb == TRUE)
   return_lst <- list(value=max_val,elements=package_nums)
 
+  return(return_lst)
+}
+
+knapsack_dynamic <- function(x, W){
+  n <- length(x$w)
+  m <- matrix(0,nrow=n+1,ncol=W+1)
+
+  for(i in 1:n){
+    #print(paste("i=",i))
+    for(j in 1:(W+1)){
+      #print(paste("j=",j))
+      if(x$w[i] > j-1){
+        m[i+1,j] <- m[i,j]
+      }
+      else{
+        m[i+1,j] <- max(m[i,j],m[i,j-x$w[i]]+x$v[i])
+      }
+    }
+  }
+
+  knapback <- function(i,j){
+    if (i == 1){
+      return()
+    }
+    if(m[i,j] > m[i-1, j]){
+        ret = c(i, knapback(i-1, j-x$w[i-1]))
+        return(ret)
+    }
+    else{
+      return(knapback(i-1,j))
+    }
+  }
+
+  item_vec <- knapback(n+1,W+1)
+  return_lst <- list(value=m[n+1,W+1],elements=rev(item_vec-1))
+  return(return_lst)
+}
+
+greedy_knapsack <- function(x, W){
+  x$ratio <- x$v / x$w
+  x <- x[order(x$ratio,method="radix",decreasing=TRUE),] #profile later, which sort is fastest
+  current_W <- 0
+  current_v <- 0
+  elem_vec <- c()
+  for(i in 1:length(x$w)){
+    if((current_W + x$w[i]) <= W){
+      current_W <- current_W + x$w[i]
+      current_v <- current_v + x$v[i]
+      elem_vec <- append(elem_vec,rownames(x)[i])
+    }
+  }
+  return_lst <- list(value=current_v,elements=elem_vec)
   return(return_lst)
 }
