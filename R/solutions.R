@@ -41,23 +41,18 @@ brute_force_knapsack <- function(x, W,parallel=FALSE){
   possib_knapsacks <- list()
   if(parallel == TRUE){
     num_cores <- detectCores()
-    print(num_cores)
     clust <- makeCluster(num_cores)
-    # clusterExport(clust,comb)
-    # possib_knapsacks <- t(mclapply(mc.cores = num_cores,X=comb,FUN=sum_up))
-    possib_knapsacks <- t(parApply(clust,X=comb,MARGIN=1,FUN=sum_up))
+    clusterExport(cl =clust,envir = environment(),c("x","W"))
+    possib_knapsacks <- parApply(clust,X=t(comb),MARGIN=2,FUN=sum_up)
     stopCluster(clust)
-    # print(possib_knapsacks)
+
   }
   else{
-    possib_knapsacks <- t(apply(X=comb,MARGIN=1,FUN=sum_up))
-    # print(possib_knapsacks)
-
+    possib_knapsacks <- apply(X=t(comb),FUN=sum_up,MARGIN = 2)
   }
-  max_val <- max(possib_knapsacks[,'value'])
-  best_index <- which(possib_knapsacks[,'value'] == max_val)
+  max_val <- max(possib_knapsacks['value',])
+  best_index <- which(possib_knapsacks['value',] == max_val)
   best_comb <- comb[best_index,]
-
   package_nums <- which(best_comb == TRUE)
   return_lst <- list(value=max_val,elements=package_nums)
 
@@ -86,6 +81,8 @@ knapsack_dynamic <- function(x, W){
             is.numeric(x$w)
   )
 
+  weight_vec <- x$w
+  value_vec <- x$v
   n <- length(x$w)
   m <- matrix(0,nrow=n+1,ncol=W+1)
 
@@ -93,11 +90,11 @@ knapsack_dynamic <- function(x, W){
     #print(paste("i=",i))
     for(j in 1:(W+1)){
       #print(paste("j=",j))
-      if(x$w[i] > j-1){
+      if(weight_vec[i] > j-1){
         m[i+1,j] <- m[i,j]
       }
       else{
-        m[i+1,j] <- max(m[i,j],m[i,j-x$w[i]]+x$v[i])
+        m[i+1,j] <- max(m[i,j],m[i,j-weight_vec[i]]+ value_vec[i])
       }
     }
   }
@@ -141,8 +138,8 @@ greedy_knapsack <- function(x, W){
             is.numeric(x$w)
   )
 
-  x$ratio <- x$v / x$w
-  x <- x[order(x$ratio,method="radix",decreasing=TRUE),] #profile later, which sort is fastest
+  ratio <- x$v / x$w
+  x <- x[order(ratio,method="radix",decreasing=TRUE),] #profile later, which sort is fastest
   current_W <- 0
   current_v <- 0
   elem_vec <- c()
