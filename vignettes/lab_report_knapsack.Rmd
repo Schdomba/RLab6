@@ -1,0 +1,122 @@
+---
+title: "lab_report_knapsack"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{lab_report_knapsack}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+This vignette details how to use the package Rlab6 to solve the knapsack problem with different approaches. First, load the package to the library.
+```{r setup}
+library(RLab6)
+```
+
+## create_problem()
+
+This function creates a data.frame of sample size nmax, with random values and weights. 
+```{r}
+x<- create_problem(2000)
+print(head(x))
+```
+
+## brute_force_knapsack()
+
+This function solves the knapsack problem using the brute force method. The inputs are the data.frame x, maximum weight W, and the parallel flag.
+This function can be in parallel mode, when the parallel flag is set to TRUE. by default, the parallel flag is set to FALSE. 
+
+```{r}
+# running in single thread mode
+brute_force_knapsack(x = x[1:8,],W = 3500, parallel = FALSE)
+
+```
+The outputs of the function is a list containing the maximum possible value of the knapsack and the corresponding elements.
+
+## profile_brute_force()
+
+This function uses the profvis package to profile the function brute_force_knapsack(). Input arguments are the number of rows to select from randomly generated data.frame, the maximum weight limit W, and the parallel flag.
+
+```{r}
+profile_bruteforce(16,3500)
+
+```
+Question:  How much time does it takes to run the algorithm for n = 16 objects?
+
+Answer: for the inputs x[1:16,],W= 3500: Time = 150ms 
+
+Question: What performance gain could you get by parallelizing brute force search?
+
+Answer:For the inputs, x[1:19,],W= 3500 single core : 1560ms , parallel : 2830ms  loss :  1270 ms
+
+The parallelized runtime of the brute-force function was 1270ms more than the single-threaded runtime. This is due to the fact that the function sum_up used in apply/parApply has a very short runtime. The overhead incurred by parallelizing seems to be much greater than the actual function runtime. To test this hypothesis, we introduced a sys.sleep() time of 1 second in the function sum_up. This would put the system to sleep for 1s everytime the function sum_up is called in apply/parApply. For this case, the parallel approach was faster. 
+
+
+
+## knapsack_dynamic()
+
+This function solves the knapsack problem using the dynamic programming method. The inputs are the data.frame x and the maximum weight W. 
+
+```{r}
+knapsack_dynamic(x[1:8,], 3500)
+
+```
+The outputs of the function is a list containing the maximum possible value of the knapsack and the corresponding elements.
+
+## profile_dynamic()
+This function uses the profvis package to profile the function knapsack_dynamic(). Input arguments are the number of rows to select from randomly generated data.frame and the maximum weight limit W.
+```{r}
+profile_dynamic(500,3500)
+```
+
+Question:  How much time does it takes to run the algorithm for n = 500 objects?
+
+Answer : Inputs x[1:500,],W=3500, Time taken : 2400 ms.
+
+## greedy_knapsack()
+This function estimates the maximum value in the knapsack problem using the greedy heuristic method. The inputs are the data.frame x and the maximum weight W.
+
+```{r}
+greedy_knapsack(x[1:800,],W = 3500)
+
+```
+
+The outputs of the function is a list containing the maximum possible value of the knapsack and the corresponding elements.
+
+## profile_greedy()
+
+This function uses the profvis package to profile the function greedy_knapsack(). Input arguments are the number of rows to select from randomly generated data.frame and the maximum weight limit W.
+
+```{r}
+profile_greedy(1000000,3500)
+```
+
+Question:  How much time does it takes to run the algorithm for n = 1000000 objects?
+
+Answer: For the inputs x[1:1000000,],W=3500, time taken = 790ms 
+
+## Profiling and optimizing code 
+
+Question: What performance gain could you get by trying to improving your code?
+
+Answer: 
+
+*knapsack_dynamic()
+<!-- #500,3500: Time = 2890ms x$w,x$v <- addressing elements from dataframe -->
+<!-- # changed addressing of x$w to a vector weight_vec, new time : 460 ms -->
+<!-- # run 2 :  changeded addressing to x$v to vector value_vec , new time 230 ms. -->
+By profiling the code using profile_dynamic, we realized that the $ function used to address columns in a data.frame was a bottleneck. This was being used inside a loop and called very often. As an improvement, we stored the columns in separate vectors before running the loop. This improved the runtime of function knapsack_dynamic, from 2890 ms to 230 ms.
+
+*greedy_knapsack()
+The same bottleneck was present in this function as well, and by using the same solution, we were able to reduce the runtime from 330 ms to 200 ms for 4 million rows, max W = 3500. In addition to this, we changed the options for the sort method in the function order from "radix" to "shell." We noticed a significant increase in runtime from 330 ms to 1620 ms. 
+
+*brute_force_knapsack()
+We implemented similar changes to the brute_force_knapsack function, but there were no measurable differences in the runtime to suggest that the changes we made were having any effect.
+
+
+
